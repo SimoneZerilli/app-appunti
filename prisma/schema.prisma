@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  priority    String    @default("media") // bassa | media | alta
+  status      String    @default("da_fare") // da_fare | in_corso | completata
+  list        String    @default("oggi") // oggi | backlog
+  dueDate     DateTime?
+  completedAt DateTime?
+  order       Int       @default(0)
+  tags        Tag[]     @relation("TaskTags")
+  links       Link[]
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  url       String
+  label     String?
+  kind      String   @default("generico") // youtube | instagram | generico
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id])
+  ideaId    String?
+  idea      Idea?    @relation(fields: [ideaId], references: [id])
+  mediaId   String?
+  media     Media?   @relation(fields: [mediaId], references: [id])
+  readingId String?
+  reading   Reading? @relation(fields: [readingId], references: [id])
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  tasks Task[] @relation("TaskTags")
+  ideas Idea[] @relation("IdeaTags")
+}
+
+model WorkoutPlan {
+  id        String            @id @default(cuid())
+  name      String
+  notes     String?
+  exercises WorkoutExercise[]
+  sessions  WorkoutSession[]
+  createdAt DateTime          @default(now())
+  deletedAt DateTime?
+}
+
+model WorkoutExercise {
+  id          String      @id @default(cuid())
+  planId      String
+  plan        WorkoutPlan @relation(fields: [planId], references: [id])
+  name        String
+  muscleGroup String
+  sets        Int
+  reps        String
+  weight      Float?
+  restSeconds Int?
+  notes       String?
+  youtubeUrl  String?
+  order       Int         @default(0)
+}
+
+model WorkoutSession {
+  id            String       @id @default(cuid())
+  planId        String?
+  plan          WorkoutPlan? @relation(fields: [planId], references: [id])
+  date          DateTime
+  notes         String?
+  completedJson String?
+  createdAt     DateTime     @default(now())
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  title       String
+  type        String // film | serie | anime
+  status      String    @default("da_vedere") // da_vedere | in_corso | completato
+  rating      Float? // 1-10, mezzi punti
+  platform    String?
+  notes       String?
+  completedAt DateTime?
+  links       Link[]
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Reading {
+  id          String    @id @default(cuid())
+  title       String
+  author      String?
+  type        String // libro | manga
+  status      String    @default("da_leggere") // da_leggere | in_corso | completato
+  totalPages  Int?
+  currentPage Int?
+  rating      Float?
+  notes       String?
+  completedAt DateTime?
+  links       Link[]
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Idea {
+  id        String    @id @default(cuid())
+  title     String
+  content   String?
+  category  String?
+  status    String    @default("bozza") // bozza | da_esplorare | archiviata
+  tags      Tag[]     @relation("IdeaTags")
+  links     Link[]
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Reminder {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  dueAt       DateTime
+  recurrence  String    @default("mai") // mai | giornaliera | settimanale | mensile
+  status      String    @default("attivo") // attivo | completato | scaduto
+  completedAt DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  status      String    @default("idea") // idea | in_corso | in_pausa | completato | abbandonato
+  dueDate     DateTime?
+  notes       String?
+  links       Link[]
+  tasks       Task[]
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+}
